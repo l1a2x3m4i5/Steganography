@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form method="POST" enctype="multipart/form-data" class="container px-3 py-4 shadow-lg rounded border">
+    <h2 class="mb-3 text-center text-primary">Encrypt Data</h2>
+    
+    <!-- Encryption Type -->
+    <div class="mb-3">
+        <label for="encryption_type" class="form-label fs-5 fw-semibold">Encryption Type</label>
+        <select name="encryption_type" id="encryption_type" class="form-select" required>
+            <option value="AES" {% if form_data.encryption_type == "AES" %}selected{% endif %}>AES</option>
+            <option value="DES" {% if form_data.encryption_type == "DES" %}selected{% endif %}>DES</option>
+            <option value="LSB" {% if form_data.encryption_type == "LSB" %}selected{% endif %}>LSB</option>
+            <option value="Audio" {% if form_data.encryption_type == "Audio" %}selected{% endif %}>Audio</option>
+        </select>
+    </div>
+
+    <!-- Media Upload Field -->
+    <div class="mb-3" id="media_field" style="display: none;">
+        <label for="media" class="form-label fs-5 fw-semibold">Upload Media File</label>
+        <input type="file" class="form-control" id="media" name="file">
+        {% if form_data.file %}
+            <p class="mt-1 text-muted">Previously uploaded file: {{ form_data.file_name }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Message Input -->
+    <div class="mb-3">
+        <label for="message" class="form-label fs-5 fw-semibold">Message to Encrypt</label>
+        <textarea 
+            class="form-control" 
+            id="message" 
+            name="message" 
+            rows="4" 
+            required 
+            placeholder="Enter the message you want to encrypt">{{ form_data.message if form_data.message else '' }}</textarea>
+    </div>
+
+    <!-- Encrypt Button -->
+    <button type="submit" class="btn btn-primary w-100 mt-3 fs-5 fw-semibold">Encrypt</button>
+</form>
+
+<!-- Success or Error Messages -->
+{% if success %}
+    <div class="alert alert-success mt-4">
+        <p>Encryption Successful!</p>
+        <p>Encrypted message: <code>{{ encrypted_message }}</code></p>
+    </div>
+{% elif error_message %}
+    <div class="alert alert-danger mt-4">
+        <p><strong>Error:</strong> {{ error_message }}</p>
+    </div>
+{% endif %}
+
+<script>
+    const encryptionType = document.getElementById('encryption_type');
+    const mediaField = document.getElementById('media_field');
+
+    // Toggle media field visibility based on selected encryption type
+    function toggleMediaField() {
+        const type = encryptionType.value;
+        mediaField.style.display = (type === 'LSB' || type === 'Audio') ? 'block' : 'none';
+    }
+
+    // Initialize visibility on page load
+    toggleMediaField();
+
+    // Update visibility on selection change
+    encryptionType.addEventListener('change', toggleMediaField);
+</script>
+{% endblock %}

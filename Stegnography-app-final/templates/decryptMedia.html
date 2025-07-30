@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form method="POST" enctype="multipart/form-data" class="shadow p-4 rounded">
+    <h2 class="mb-3 text-center text-danger">Decrypt Data</h2>
+
+    <!-- Decryption Type -->
+    <div class="mb-3">
+        <label for="decryption_type" class="form-label fs-5 fw-semibold">Decryption Type</label>
+        <select name="decryption_type" id="decryption_type" class="form-control" required>
+            <option value="AES" {% if form_data.decryption_type=="AES" %}selected{% endif %}>AES</option>
+            <option value="DES" {% if form_data.decryption_type=="DES" %}selected{% endif %}>DES</option>
+            <option value="LSB" {% if form_data.decryption_type=="LSB" %}selected{% endif %}>LSB</option>
+            <option value="Audio" {% if form_data.decryption_type=="Audio" %}selected{% endif %}>Audio</option>
+        </select>
+    </div>
+
+    <!-- Media Upload Field -->
+    <div class="mb-3" id="media_field" style="display: none;">
+        <label for="media" class="form-label fs-5 fw-semibold">Upload Encoded Media File</label>
+        <input type="file" class="form-control" id="media" name="file">
+        {% if form_data.file %}
+        <p class="mt-1 text-muted">Previously uploaded file: {{ form_data.file_name }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Key File Upload Field -->
+    <div class="mb-3">
+        <label for="key_file" class="form-label fs-5 fw-semibold">Upload Decryption Key File</label>
+        <input type="file" class="form-control" id="key_file" name="key_file" required>
+        {% if form_data.key_file %}
+        <p class="mt-1 text-muted">Previously uploaded key file: {{ form_data.key_file_name }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Encrypted Message Field -->
+    <div class="mb-3" id="message_field">
+        <label for="encrypted_message" class="form-label fs-5 fw-semibold">Encrypted Message (AES/DES)</label>
+        <textarea class="form-control" id="encrypted_message" name="encrypted_message"
+            rows="3">{{ form_data.encrypted_message if form_data.encrypted_message else '' }}</textarea>
+    </div>
+
+    <!-- Decrypt Button -->
+    <button type="submit" class="btn btn-danger w-100 mt-3 fs-5 fw-semibold">Decrypt</button>
+</form>
+
+<!-- Success or Failure Messages -->
+{% if success %}
+<div class="card mt-5 shadow mx-auto" style="max-width: 500px;">
+    <div class="card-header bg-success text-white text-center">
+        <h4 class="card-title mb-0">Decryption Successful!</h4>
+    </div>
+    <div class="card-body text-center">
+        <div class="mb-3">
+            <p><strong>Decrypted Message:</strong></p>
+            <div class="alert alert-info">{{ decrypted_message }}</div>
+        </div>
+
+        {% if decrypted_file_path %}
+        <div class="mb-3 d-flex flex-column justify-content-center align-items-center">
+            <strong class="mb-3">Decrypted File:</strong>
+            {% if decrypted_file_path.endswith('.png') or decrypted_file_path.endswith('.jpg') or
+            decrypted_file_path.endswith('.jpeg') %}
+            <img src="{{ url_for('uploaded_file', filename=decrypted_file_path.split('/')[-1]) }}" alt="Decrypted Image"
+                class="img-fluid">
+            {% elif decrypted_file_path.endswith('.wav') %}
+            <audio controls>
+                <source src="{{ url_for('uploaded_file', filename=decrypted_file_path.split('/')[-1]) }}"
+                    type="audio/wav">
+                Your browser does not support the audio element.
+            </audio>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% elif message %}
+<div class="card mt-5 shadow mx-auto" style="max-width: 500px;">
+    <div class="card-header bg-danger text-white text-center">
+        <h4 class="card-title mb-0">Decryption Failed</h4>
+    </div>
+    <div class="card-body">
+        <div class="mb-3 text-center">
+            <label for="messageInput" class="form-label"><strong>Error:</strong></label>
+            <div class="alert alert-warning">{{ message }}</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    const decryptionType = document.getElementById('decryption_type');
+    const mediaField = document.getElementById('media_field');
+    const messageField = document.getElementById('message_field');
+
+    // Function to toggle visibility of fields based on selected decryption type
+    function toggleFields() {
+        const type = decryptionType.value;
+        mediaField.style.display = (type === 'LSB' || type === 'Audio') ? 'block' : 'none';
+        messageField.style.display = (type === 'AES' || type === 'DES') ? 'block' : 'none';
+    }
+
+    // Initialize visibility on page load
+    toggleFields();
+
+    // Update visibility on selection change
+    decryptionType.addEventListener('change', toggleFields);
+</script>
+{% endblock %}
